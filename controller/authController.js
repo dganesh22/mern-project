@@ -69,6 +69,14 @@ const loginUser = async (req, res) => {
         // generate auth token
         let token = await generateToken(exEmail._id)
 
+        // store the token in cookies
+        res.cookie("auth_token", token, {
+            httpOnly: true,
+            signed: true,
+            path: `/`,
+            maxAge: 1 * 24 * 60 * 60 * 1000
+        })
+
         res.status(StatusCodes.OK).json({ status: true, msg: "login successful", token })
 
     } catch (err) {
@@ -79,7 +87,10 @@ const loginUser = async (req, res) => {
 // logout user controller
 const logoutUser = async (req, res) => {
     try {
-        res.json({ msg: "logout controor" })
+        // clear the cookie
+        res.clearCookie("auth_token", { path: "/" })
+
+        res.status(StatusCodes.OK).json({ status: true, msg: "logout successfully" })
     } catch (err) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ status: false, msg: err.message })
     }
@@ -89,7 +100,14 @@ const logoutUser = async (req, res) => {
 // validate user
 const verifyUser = async (req, res) => {
     try {
-        res.json({ msg: "verify user controor" })
+
+        let exUser = await User.findById(req.userId).select('-password')
+
+        if (!exUser)
+            return res.status(StatusCodes.NOT_FOUND).json({ status: false, msg: `requested user id not found` })
+
+        res.status(StatusCodes.ACCEPTED).json({ msg: "verified successfully", user: exUser })
+
     } catch (err) {
         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ status: false, msg: err.message })
     }

@@ -1,5 +1,6 @@
 const authRoute = require('express').Router()
 const { registerUser, loginUser, logoutUser, verifyUser } = require('../controller/authController')
+const authMiddleware = require('../middleware/auth')
 
 // register 
 authRoute.post(`/register`, registerUser)
@@ -11,6 +12,6 @@ authRoute.post(`/login`, loginUser)
 authRoute.get(`/logout`, logoutUser)
 
 // verify user
-authRoute.get(`/verify/user`, verifyUser)
+authRoute.get(`/verify/user`, authMiddleware, verifyUser)
 
 module.exports = authRoute
